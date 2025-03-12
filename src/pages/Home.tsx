@@ -14,8 +14,12 @@ const Home = () => {
         dispatch(fetchCryptos());
     }, [dispatch]);
 
+    // const filteredCoins = coins.filter((coin) =>
+    //     coin.name.toLowerCase().includes(searchTerm.toLowerCase())
+    // );
     const filteredCoins = coins.filter((coin) =>
-        coin.name.toLowerCase().includes(searchTerm.toLowerCase())
+        coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
