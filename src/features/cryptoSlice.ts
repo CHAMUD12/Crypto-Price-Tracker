@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { RootState } from "../store";
 
 interface CryptoState {
     coins: any[];
@@ -11,14 +12,27 @@ const initialState: CryptoState = {
     status: "idle",
 };
 
-// Fetch crypto data from CoinGecko API
-export const fetchCryptos = createAsyncThunk("crypto/fetchCryptos", async () => {
-    const response = await axios.get(
-        "https://api.coingecko.com/api/v3/coins/markets",
-        { params: { vs_currency: "usd", order: "market_cap_desc", per_page: 150, page: 1 } }
-    );
-    return response.data;
-});
+// Fetch crypto data from CoinGecko API with the selected currency
+export const fetchCryptos = createAsyncThunk(
+    "crypto/fetchCryptos",
+    async (_, { getState }) => {
+        const state = getState() as RootState;
+        const currency = state.currency.selectedCurrency;
+
+        const response = await axios.get(
+            "https://api.coingecko.com/api/v3/coins/markets",
+            {
+                params: {
+                    vs_currency: currency,
+                    order: "market_cap_desc",
+                    per_page: 150,
+                    page: 1
+                }
+            }
+        );
+        return response.data;
+    }
+);
 
 const cryptoSlice = createSlice({
     name: "crypto",

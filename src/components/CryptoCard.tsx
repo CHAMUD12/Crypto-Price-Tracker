@@ -16,10 +16,25 @@ const CryptoCard: React.FC<CryptoCardProps> = ({ id, name, image, price, symbol 
     const [showChart, setShowChart] = useState(false);
     const dispatch = useDispatch();
     const favoriteIds = useSelector((state: RootState) => state.favorites.favoriteIds);
+    const selectedCurrency = useSelector((state: RootState) => state.currency.selectedCurrency);
     const isFavorite = favoriteIds.includes(id);
 
     const handleToggleFavorite = () => {
         dispatch(toggleFavorite(id));
+    };
+
+    // Get currency symbol
+    const getCurrencySymbol = () => {
+        switch (selectedCurrency) {
+            case "usd": return "$";
+            case "eur": return "€";
+            case "gbp": return "£";
+            case "jpy": return "¥";
+            case "aud": return "A$";
+            case "cad": return "C$";
+            case "chf": return "Fr";
+            default: return "$";
+        }
     };
 
     return (
@@ -29,7 +44,7 @@ const CryptoCard: React.FC<CryptoCardProps> = ({ id, name, image, price, symbol 
                     <img src={image} alt={name} className="w-10 h-10" />
                     <div>
                         <h3 className="text-lg font-bold">{name} ({symbol.toUpperCase()})</h3>
-                        <p className="text-green-400">${price.toLocaleString()}</p>
+                        <p className="text-green-400">{getCurrencySymbol()}{price.toLocaleString()}</p>
                     </div>
                 </div>
                 <button
@@ -55,7 +70,7 @@ const CryptoCard: React.FC<CryptoCardProps> = ({ id, name, image, price, symbol 
                     {showChart ? "Hide Chart" : "Show Chart"}
                 </button>
             </div>
-            {showChart && <PriceChart coinId={id} />}
+            {showChart && <PriceChart coinId={id} currency={selectedCurrency} />}
         </div>
     );
 };

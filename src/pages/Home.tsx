@@ -2,20 +2,32 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCryptos } from "../features/cryptoSlice";
 import { clearFavorites } from "../features/favoritesSlice";
+import { fetchExchangeRates } from "../features/currencySlice";
 import { RootState, AppDispatch } from "../store";
 import CryptoCard from "../components/CryptoCard";
 import SearchBar from "../components/SearchBar";
+import CurrencySelector from "../components/CurrencySelector";
 
 const Home = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { coins, status } = useSelector((state: RootState) => state.crypto);
     const { favoriteIds } = useSelector((state: RootState) => state.favorites);
+    const { selectedCurrency, lastUpdated } = useSelector((state: RootState) => state.currency);
     const [searchTerm, setSearchTerm] = useState("");
     const [showFavorites, setShowFavorites] = useState(false);
 
+    // Fetch exchange rates when component mounts or if they haven't been updated in the last hour
+    useEffect(() => {
+        const shouldUpdateRates = !lastUpdated || (Date.now() - lastUpdated) > 3600000; // 1 hour
+        if (shouldUpdateRates) {
+            dispatch(fetchExchangeRates());
+        }
+    }, [dispatch, lastUpdated]);
+
+    // Fetch crypto data when component mounts or when currency changes
     useEffect(() => {
         dispatch(fetchCryptos());
-    }, [dispatch]);
+    }, [dispatch, selectedCurrency]);
 
     const filteredCoins = coins.filter((coin) => {
         // First apply search filter
@@ -36,12 +48,31 @@ const Home = () => {
         }
     };
 
+    // Function to manually refresh exchange rates
+    const handleRefreshRates = () => {
+        dispatch(fetchExchangeRates());
+    };
+
     return (
         <div className="max-w-3xl mx-auto p-4">
             <h1 className="text-2xl font-bold text-center mb-4">Crypto Price Tracker</h1>
 
             <div className="flex flex-col gap-4 mb-4">
-                <SearchBar onSearch={setSearchTerm} />
+                <div className="flex justify-between items-center">
+                    <SearchBar onSearch={setSearchTerm} />
+                    <div className="flex items-center gap-2">
+                        <CurrencySelector />
+                        <button
+                            onClick={handleRefreshRates}
+                            className="bg-gray-200 p-2 rounded-lg hover:bg-gray-300"
+                            title="Refresh exchange rates"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
                 <div className="flex justify-between items-center">
                     <div className="flex gap-2">

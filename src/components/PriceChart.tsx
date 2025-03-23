@@ -57,12 +57,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Currency } from "../features/currencySlice";
 
 interface PriceChartProps {
     coinId: string;
+    currency: Currency;
 }
 
-const PriceChart: React.FC<PriceChartProps> = ({ coinId }) => {
+const PriceChart: React.FC<PriceChartProps> = ({ coinId, currency }) => {
     const [chartData, setChartData] = useState<{ timestamp: number; date: string; price: number }[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -71,7 +73,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ coinId }) => {
             try {
                 const response = await axios.get(
                     `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart`,
-                    { params: { vs_currency: "usd", days: 7, interval: "daily" } }
+                    { params: { vs_currency: currency, days: 7, interval: "daily" } }
                 );
 
                 const formattedData = response.data.prices.map((entry: [number, number]) => ({
@@ -89,7 +91,21 @@ const PriceChart: React.FC<PriceChartProps> = ({ coinId }) => {
         };
 
         fetchChartData();
-    }, [coinId]);
+    }, [coinId, currency]);
+
+    // Get currency symbol
+    const getCurrencySymbol = () => {
+        switch (currency) {
+            case "usd": return "$";
+            case "eur": return "€";
+            case "gbp": return "£";
+            case "jpy": return "¥";
+            case "aud": return "A$";
+            case "cad": return "C$";
+            case "chf": return "Fr";
+            default: return "$";
+        }
+    };
 
     // Custom tick formatter to show dates nicely
     const formatXAxis = (timestamp: number) => {
@@ -118,7 +134,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ coinId }) => {
                         <YAxis tick={{ fill: "white" }} />
                         <Tooltip
                             labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                            formatter={(value) => [`$${value.toLocaleString()}`, 'Price']}
+                            formatter={(value) => [`${getCurrencySymbol()}${value.toLocaleString()}`, 'Price']}
                         />
                         <Line
                             type="monotone"
